@@ -22,6 +22,12 @@ class Stocks :
         self.resistance = resistance
         self.support = support
     
+    def log_curr_price(self, value) :
+        self.curr_price = value
+
+    def update_allocations(self, total_price) :
+        self.allocation = self.curr_price / total_price
+            
     #def buying_funds(self):
      #   buying_power = account.buying_power
          
@@ -66,7 +72,14 @@ for i in range(0, len(words), 3) : #step size 3 because of num cols
 # Determine the funds to allocate
 total_price = 0
 for stock in symbols :
-    total_price += api.get_latest       #price of stock in stocks
+    curr_price = api.get_latest_quote(stock.symbol)
+    total_price += api.get_latest_quote(stock.symbol)      #price of stock in stocks
+    stock.log_current_price(curr_price)
+    
+
+#Allocated funds, price weighted allocation
+
+
 
 #forever we want to check each stock and update
 while datetime.now().hour() != 4 or buying_power <  1 : #tk
