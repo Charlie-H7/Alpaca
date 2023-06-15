@@ -132,11 +132,3 @@ while datetime.now().hour() != 4 or buying_power <  1 : #tk
 
 
 
-
-
-    #Trading
-    #for stock in positions :
-
-
-
-
