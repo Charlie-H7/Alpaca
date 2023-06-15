@@ -53,7 +53,7 @@ api = trade_api.REST(API_KEY, SECRET_KEY, base_url='https://paper-api.alpaca.mar
 
 #positions = trading_client.get_all_positions() Pos is for live
 account = trading_client.get_account()
-
+buying_power = account.buying_power()   #CHECK IF MEMBER OR DEF (FUNCTION OR MEMBER) EIOSAKHJBDFEIHVSEJH
 
 
 dev_perc = 0.05    #Used for live
@@ -78,6 +78,8 @@ for stock in symbols :
     
 
 #Allocated funds, price weighted allocation
+for stock in symbols : 
+    stock.update_allocations(total_price)
 
 
 
@@ -86,10 +88,11 @@ while datetime.now().hour() != 4 or buying_power <  1 : #tk
 
     #Check for any breakouts, or within buying range
     for stock in symbols :
-        latest_quote = api.get_latest_quote(stock.symbol)
+        latest_quote = api.get_latest_trade(stock.symbol)
         
         #---Cases---#
 
+        #Case 1
         #Breakout below - Triggers when strictly below support  TYPICALLY WOULD CHECK IF STILL IN DOWNTREND
         if latest_quote < (stock.support - (stock.support * dev_perc)) : #while is support and is uptrend, just for after above breakout is made   
 
@@ -97,17 +100,33 @@ while datetime.now().hour() != 4 or buying_power <  1 : #tk
             #BUY
             stock.resistance = stock.support
             stock.support = latest_quote
+            #Request
+            market_order_data = MarketOrderRequest(
+                                symbol = stock.symbol,
+                                qty = stock.allocation / latest_quote,
+                                side = OrderSide.BUY,
+                                time_in_force = TimeInForce.DAY
+                                )
 
-        #Breakout above - Triggers when above or below by a certain deviation
+        #Case 2
+        #Breakout above - Triggers when above or below by a certain deviation   [Hold]
         elif latest_quote > stock.resistance :
             stock.support = stock.resistance
             stock.resistance = latest_quote
 
-        #buy above or below by dev when no breakout and current price close to support
+        #Case 3
+        #Buy above or below by dev when no breakout and current price close to support
         else :
             #closer to support line
-            if (stock.resistance - latest_quote >  latest_quote - stock.support) and ((stock.support + (stock.support * dev_perc)) > latest_quote) or ((stock.support - (stock.support * dev_perc)) < latest_quote) :
+            if (stock.resistance - latest_quote > latest_quote - stock.support) and ((stock.support + (stock.support * dev_perc)) > latest_quote) or ((stock.support - (stock.support * dev_perc)) < latest_quote) :
                 #Buy
+                #Request
+                market_order_data = MarketOrderRequest(
+                                    symbol = stock.symbol,
+                                    qty = stock.allocation / latest_quote,
+                                    side = OrderSide.BUY,
+                                    time_in_force = TimeInForce.DAY
+                                    )
 
 
 
@@ -121,5 +140,3 @@ while datetime.now().hour() != 4 or buying_power <  1 : #tk
 
 
 
-
-foo = 1
