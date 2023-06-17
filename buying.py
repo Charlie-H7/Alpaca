@@ -53,12 +53,12 @@ api = trade_api.REST(API_KEY, SECRET_KEY, base_url='https://paper-api.alpaca.mar
 
 #positions = trading_client.get_all_positions() Pos is for live
 account = trading_client.get_account()
-buying_power = account.buying_power()   #CHECK IF MEMBER OR DEF (FUNCTION OR MEMBER) EIOSAKHJBDFEIHVSEJH
+buying_power = account.buying_power   #CHECK IF MEMBER OR DEF (FUNCTION OR MEMBER) EIOSAKHJBDFEIHVSEJH
 
 
 dev_perc = 0.05    #Used for live
 #this contains the list of symbol string im interested in purchasing
-symbols = [{}]
+symbols = []
 file = open("supres.txt", 'r')
 junk_line = file.readline()
 text = file.read()
@@ -72,9 +72,10 @@ for i in range(0, len(words), 3) : #step size 3 because of num cols
 # Determine the funds to allocate
 total_price = 0
 for stock in symbols :
-    curr_price = api.get_latest_quote(stock.symbol)
-    total_price += api.get_latest_quote(stock.symbol)      #price of stock in stocks
-    stock.log_current_price(curr_price)
+    quote = api.get_latest_quote(stock.symbol)
+    curr_price = float(quote.ask_price)    #ask price, CAN BE SUBBED OUT WITH 'get_last_trade'
+    total_price += curr_price      #price of stock in stocks
+    stock.log_curr_price(curr_price)
     
 
 #Allocated funds, price weighted allocation
@@ -84,11 +85,12 @@ for stock in symbols :
 
 
 #forever we want to check each stock and update
-while datetime.now().hour() != 4 or buying_power <  1 : #tk
+while datetime.now().hour != 4 or buying_power <  1 : #tk
 
     #Check for any breakouts, or within buying range
     for stock in symbols :
-        latest_quote = api.get_latest_trade(stock.symbol)
+        quote = api.get_latest_quote(stock.symbol)
+        latest_quote = float(quote.ask_price)
         
         #---Cases---#
 
@@ -109,16 +111,16 @@ while datetime.now().hour() != 4 or buying_power <  1 : #tk
                                 )
 
         #Case 2
-        #Breakout above - Triggers when above or below by a certain deviation   [Hold]
+        #Breakout above - Triggers when strictly above resistance   [Hold]
         elif latest_quote > stock.resistance :
             stock.support = stock.resistance
             stock.resistance = latest_quote
 
         #Case 3
-        #Buy above or below by dev when no breakout and current price close to support
+        #Buy above or below by dev when no breakout and current price close to support  {maybe 1st and cond will lead to issues since may pay for high price dev check on paper}
         else :
-            #closer to support line
-            if (stock.resistance - latest_quote > latest_quote - stock.support) and ((stock.support + (stock.support * dev_perc)) > latest_quote) or ((stock.support - (stock.support * dev_perc)) < latest_quote) :
+            #if curr_price closer to support line buy
+            if (stock.resistance - latest_quote > latest_quote - stock.support) and ((stock.support + (stock.support * dev_perc) > latest_quote) or ((stock.support - (stock.support * dev_perc)) < latest_quote)) :
                 #Buy
                 #Request
                 market_order_data = MarketOrderRequest(
