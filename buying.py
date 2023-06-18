@@ -109,6 +109,7 @@ while datetime.now().hour != 4 or buying_power <  1 : #tk
                                 side = OrderSide.BUY,
                                 time_in_force = TimeInForce.DAY
                                 )
+            trading_client.submit_order(market_order_data)
 
         #Case 2
         #Breakout above - Triggers when strictly above resistance   [Hold]
@@ -129,6 +130,7 @@ while datetime.now().hour != 4 or buying_power <  1 : #tk
                                     side = OrderSide.BUY,
                                     time_in_force = TimeInForce.DAY
                                     )
+                trading_client.submit_order(market_order_data)
 
 
 
